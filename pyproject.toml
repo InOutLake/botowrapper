@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "botowrapper"
+version = "0.1.0"
+description = "A wrapper around boto3 and aioboto3 for S3-compatible object storage."
+readme = "README.md"
+authors = [{ name = "Max", email = "dummybotowrapper@email.com" }]
+license = { file = "LICENSE" }
+dependencies = ["boto3", "aioboto3"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/inoutlake/botowrapper"
+Repository = "https://github.com/yourusername/botowrapper"
