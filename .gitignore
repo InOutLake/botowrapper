@@ -6,6 +6,8 @@ __pycache__/
 # C extensions
 *.so
 .python-version
+pyproject.toml
+.pypirc
 requirements.txt
 
 # Distribution / packaging

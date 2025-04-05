@@ -10,7 +10,11 @@ readme = "README.md"
 authors = [{ name = "Max", email = "dummybotowrapper@email.com" }]
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
-dependencies = ["boto3==1.37.1", "aioboto3==14.1.0", "botocore==1.37.1"]
+dependencies = [
+    "boto3>1.37.0,<= 1.37.1",
+    "aioboto3==14.1.0",
+    "botocore>1.37.0,<= 1.37.1",
+]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
