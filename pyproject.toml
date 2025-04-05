@@ -18,4 +18,4 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/inoutlake/botowrapper"
-Repository = "https://github.com/yourusername/botowrapper"
+Repository = "https://github.com/inoutlake/botowrapper"
