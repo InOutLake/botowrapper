@@ -46,6 +46,16 @@ class SyncS3Client:
         if bucketname not in self.ls_buckets():
             self._client.create_bucket(Bucket=bucketname)
 
+    @property
+    def selected_bucket(self) -> str | None:
+        """
+        Gets the currently selected bucket.
+
+        :return: Bucket name or None.
+        """
+        return self._selected_bucket
+
+    @selected_bucket.setter
     def set_selected_bucket(self, bucketname: str) -> None:
         """
         Sets the bucket to use for S3 operations.
@@ -56,14 +66,6 @@ class SyncS3Client:
         if bucketname not in available_buckets:
             raise Exception(f"Bucket named {bucketname} is unavailable")
         self._selected_bucket = bucketname
-
-    def get_selected_bucket(self) -> str | None:
-        """
-        Gets the currently selected bucket.
-
-        :return: Bucket name or None.
-        """
-        return self._selected_bucket
 
     @check_bucket_selected
     def upload_file(self, file_path: str, key: str | None = None, overwrite: bool = False, **kwargs) -> None:

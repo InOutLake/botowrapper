@@ -4,10 +4,11 @@ from os import PathLike
 from typing import AsyncGenerator, Any, BinaryIO
 from pathlib import Path
 from contextlib import asynccontextmanager
+from botowrapper.helpers import check_bucket_selected
 
 
 class AsyncS3Client:
-    def __init__(self, bucketname: str = None, max_concurency: int = 5, **session_params: dict[str, Any]) -> None:
+    def __init__(self, bucketname: str | None, max_concurency: int = 5, **session_params: dict[str, Any]) -> None:
         self._session = aioboto3.Session()
         self._session_params = session_params
         self._selected_bucket = bucketname
@@ -26,28 +27,28 @@ class AsyncS3Client:
 
     @property
     def selected_bucket(self) -> str:
-        if self._selected_bucket is None:
-            raise ValueError("Bucket is not selected")
         return self._selected_bucket
 
     @selected_bucket.setter
     async def set_selected_bucket(self, bucketname: str) -> None:
         if bucketname not in await self.ls_buckets():
-            # TODO search for fitting exception in botocore.exceptions
             raise Exception(f"Bucket named {bucketname} is unavailable")
-        #! Bug: impossible to select bucket if bucket is none by default
+
         self._selected_bucket = bucketname
 
+    @check_bucket_selected
     async def ls_buckets(self) -> list[str]:
         async with self.get_client() as client:
             response = await client.list_buckets()
             return [bucket["Name"] for bucket in response["Buckets"]]
 
+    @check_bucket_selected
     async def create_bucket(self, bucketname: str) -> None:
         if bucketname not in await self.ls_buckets():
             async with self.get_client() as client:
                 await client.create_bucket(Bucket=bucketname)
 
+    @check_bucket_selected
     async def upload_file(self, file_path: str, key: str | None = None, overwrite: bool = False, **kwargs) -> None:
         async with self._semaphore:
             if key is None:
@@ -59,6 +60,7 @@ class AsyncS3Client:
             async with self.get_client() as client:
                 await client.upload_file(Bucket=self._selected_bucket, Filename=file_path, Key=key, **kwargs)
 
+    @check_bucket_selected
     async def upload_stream(self, stream: BinaryIO, key: str, **kwargs):
         """
         Uploads a binary stream to S3.
@@ -76,6 +78,7 @@ class AsyncS3Client:
             await stream.seek(0)
             raise e
 
+    @check_bucket_selected
     async def ls_files_paged(self, prefix: str, page_len: int = 100) -> AsyncGenerator:
         async with self.get_client() as client:
             continuation_token = None
@@ -97,6 +100,7 @@ class AsyncS3Client:
                     break
                 continuation_token = response.get("NextContinuationToken")
 
+    @check_bucket_selected
     async def ls_files(self, prefix: str = "") -> AsyncGenerator:
         """
         Lists all files under a prefix.
@@ -108,6 +112,7 @@ class AsyncS3Client:
             for obj in page:
                 yield obj
 
+    @check_bucket_selected
     async def download(self, prefix: str, destination: PathLike, overwrite: bool = False) -> list[tuple[str, Exception | None]]:
         """
         Downloads files from S3 to a local destination folder.
@@ -183,6 +188,7 @@ class AsyncS3Client:
             for chunk in chunks:
                 yield chunk
 
+    @check_bucket_selected
     async def copy(self, prefix: str, destination_prefix: str, overwrite: bool = False) -> list[tuple[str, Exception | None]]:
         """
         Copies files under a prefix to a new prefix.
@@ -213,6 +219,7 @@ class AsyncS3Client:
                 tasks.append(asyncio.create_task(copy_task(source_key, destination_key, overwrite)))
             return await asyncio.gather(*tasks)
 
+    @check_bucket_selected
     async def move(self, prefix: str, new_prefix: str, overwrite: bool = False) -> list[tuple[str, Exception | None]]:
         """
         Moves files from one prefix to another.
@@ -252,6 +259,7 @@ class AsyncS3Client:
 
             return results
 
+    @check_bucket_selected
     async def check_exist(self, prefix: str) -> bool:
         """
         Checks if any file exists under a prefix.
@@ -262,6 +270,7 @@ class AsyncS3Client:
         pages = self.ls_files_paged(prefix)
         return bool(await anext(pages, None))
 
+    @check_bucket_selected
     async def remove(self, prefix: str) -> None:
         """
         Deletes files under a given prefix.
@@ -281,6 +290,7 @@ class AsyncS3Client:
 
         await asyncio.gather(*tasks)
 
+    @check_bucket_selected
     async def get_urls(self, prefix: str, expires_in: int = 3600) -> dict[str, str]:
         """
         Generates pre-signed URLs for files under a prefix.
@@ -307,6 +317,7 @@ class AsyncS3Client:
         results = await asyncio.gather(*tasks)
         return dict(results)
 
+    @check_bucket_selected
     async def count_files(self, prefix: str) -> int:
         """
         Counts number of files under a prefix.
@@ -316,6 +327,7 @@ class AsyncS3Client:
         """
         return sum([1 async for _ in self.ls_files(prefix)])
 
+    @check_bucket_selected
     async def get_sizes(self, prefix: str) -> dict[str, int]:
         """
         Gets size of each file under a prefix.

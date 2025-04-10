@@ -57,7 +57,7 @@ class TestAsyncS3Client(unittest.IsolatedAsyncioTestCase):
                 f.write(f"Test file {i}")
 
     @classmethod
-    async def tearDownClass(cls):
+    def tearDownClass(cls):
         cls.container.stop()
         cls.container.remove(force=True)
         cls.docker_client.close()
