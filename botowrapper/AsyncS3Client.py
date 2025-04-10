@@ -21,7 +21,8 @@ class AsyncS3Client:
         await self._client.close()
 
     @asynccontextmanager
-    async def get_client(self) -> AsyncGenerator[aioboto3.Session.client]:
+    # ? #couldnt find the right client class, docs does not provide such
+    async def get_client(self) -> AsyncGenerator:
         async with self._session.client("s3", **self._session_params) as client:
             yield client
 
