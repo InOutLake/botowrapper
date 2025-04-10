@@ -1,14 +1,14 @@
 import aioboto3
 import asyncio
 from os import PathLike
-from typing import AsyncGenerator, Any, BinaryIO
+from typing import AsyncGenerator, Any, BinaryIO, Mapping
 from pathlib import Path
 from contextlib import asynccontextmanager
 from botowrapper.helpers import check_bucket_selected
 
 
 class AsyncS3Client:
-    def __init__(self, bucketname: str | None, max_concurency: int = 5, **session_params: dict[str, Any]) -> None:
+    def __init__(self, bucketname: str | None, max_concurency: int = 5, **session_params: Mapping[str, Any]) -> None:
         self._session = aioboto3.Session()
         self._session_params = session_params
         self._selected_bucket = bucketname
@@ -21,7 +21,7 @@ class AsyncS3Client:
         await self._client.close()
 
     @asynccontextmanager
-    async def get_client(self) -> AsyncGenerator:
+    async def get_client(self) -> AsyncGenerator[aioboto3.Session.client]:
         async with self._session.client("s3", **self._session_params) as client:
             yield client
 
@@ -61,7 +61,7 @@ class AsyncS3Client:
                 await client.upload_file(Bucket=self._selected_bucket, Filename=file_path, Key=key, **kwargs)
 
     @check_bucket_selected
-    async def upload_stream(self, stream: BinaryIO, key: str, **kwargs):
+    async def upload_stream(self, stream: BinaryIO, key: str, **kwargs) -> None:
         """
         Uploads a binary stream to S3.
 
@@ -79,7 +79,7 @@ class AsyncS3Client:
             raise e
 
     @check_bucket_selected
-    async def ls_files_paged(self, prefix: str, page_len: int = 100) -> AsyncGenerator:
+    async def ls_files_paged(self, prefix: str, page_len: int = 100) -> AsyncGenerator[dict[str, Any], None]:
         async with self.get_client() as client:
             continuation_token = None
             while True:
@@ -101,7 +101,7 @@ class AsyncS3Client:
                 continuation_token = response.get("NextContinuationToken")
 
     @check_bucket_selected
-    async def ls_files(self, prefix: str = "") -> AsyncGenerator:
+    async def ls_files(self, prefix: str = "") -> AsyncGenerator[dict[str, Any], None]:
         """
         Lists all files under a prefix.
 
