@@ -1,5 +1,4 @@
 import boto3
-from botocore.exceptions import ClientError
 from botowrapper.helpers import check_bucket_selected
 from typing import BinaryIO, Any
 from pathlib import Path

@@ -1,15 +1,11 @@
 import unittest
 from pathlib import Path
 import configparser
-from botocore.exceptions import NoCredentialsError
-from botowrapper.SyncS3Client import SyncS3Client
-import logging
+from botowrapper import SyncS3Client
 import docker
 import time
 from shutil import rmtree
 import os
-
-logging.basicConfig(level=logging.INFO)
 
 
 # ? Only main test cases covered,
@@ -47,7 +43,6 @@ class TestS3Client(unittest.TestCase):
             )
         except Exception as _:
             cls.container = cls.docker_client.containers.get("test-bucket")
-            logging.info(cls.container)
             cls.container.restart()
         time.sleep(5)
         cls.sync_client = SyncS3Client(
